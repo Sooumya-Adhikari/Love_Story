@@ -60,13 +60,16 @@ function UploadButton({ accept, icon: Icon, label, onUpload, uploading }) {
   return (
     <label
       className={`shrink-0 flex items-center gap-1.5 cursor-pointer px-3 py-2 rounded-lg border transition-all text-xs font-medium
-        ${uploading
-          ? "border-rose-400/50 text-rose-300 bg-rose-400/10 cursor-not-allowed"
-          : "border-white/20 text-white/70 hover:border-rose-400 hover:text-rose-300 hover:bg-rose-400/10"
+        ${
+          uploading
+            ? "border-rose-400/50 text-rose-300 bg-rose-400/10 cursor-not-allowed"
+            : "border-white/20 text-white/70 hover:border-rose-400 hover:text-rose-300 hover:bg-rose-400/10"
         }`}
     >
       {uploading ? (
-        <span className="animate-spin"><FiLoader size={12} /></span>
+        <span className="animate-spin">
+          <FiLoader size={12} />
+        </span>
       ) : (
         <Icon size={12} />
       )}
@@ -215,13 +218,7 @@ function AudioInput({ value, onChange }) {
           uploading={uploading}
         />
       </div>
-      {value && (
-        <audio
-          src={value}
-          controls
-          className="w-full rounded-lg"
-        />
-      )}
+      {value && <audio src={value} controls className="w-full rounded-lg" />}
       {err && <p className="text-red-400 text-xs">{err}</p>}
     </div>
   );
@@ -239,19 +236,23 @@ function AdminLogin({ onSuccess }) {
     setLoading(true);
     try {
       // সরাসরি Render-এর সঠিক এপিআই লিংকে হিট করবে
-      const res = await fetch("https://love-story-9e55.onrender.com/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        "https://love-story-9e55.onrender.com/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: pass }),
         },
-        body: JSON.stringify({ password: pass }),
-      });
+      );
 
       const data = await res.json();
 
       if (res.ok) {
         // টোকেন সেভ করে সাকসেস ফাংশন রান করবে
         localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("token", data.token);
         onSuccess();
       } else {
         setError(data.message || "Incorrect password.");
@@ -262,7 +263,6 @@ function AdminLogin({ onSuccess }) {
       setLoading(false);
     }
   }
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900 px-6">
@@ -277,7 +277,9 @@ function AdminLogin({ onSuccess }) {
           <FiLock className="text-rose-300" size={28} />
         </div>
         <h1 className="text-white font-bold text-2xl mb-1">Admin Access</h1>
-        <p className="text-white/50 text-sm mb-6">Enter password to manage your love story</p>
+        <p className="text-white/50 text-sm mb-6">
+          Enter password to manage your love story
+        </p>
         <input
           type="password"
           value={pass}
@@ -302,7 +304,10 @@ function AdminLogin({ onSuccess }) {
         <p className="text-white/30 text-[10px] mt-4">
           Default password: <span className="text-white/50">ourlovestory</span>
         </p>
-        <Link to="/" className="block mt-3 text-xs text-white/40 hover:text-white/70 transition-colors">
+        <Link
+          to="/"
+          className="block mt-3 text-xs text-white/40 hover:text-white/70 transition-colors"
+        >
           ← back to site
         </Link>
       </motion.form>
@@ -332,7 +337,9 @@ function ListEditor({ listName, itemShape, renderFields, addLabel }) {
             transition={{ delay: idx * 0.05 }}
             className="bg-white/5 border border-white/10 rounded-xl p-4 mb-4"
           >
-            {renderFields(item, (patch) => updateItem(listName, item.id, patch))}
+            {renderFields(item, (patch) =>
+              updateItem(listName, item.id, patch),
+            )}
             <button
               onClick={() => deleteItem(listName, item.id)}
               className="mt-3 flex items-center gap-1 text-xs text-red-400/70 hover:text-red-400 transition-colors"
@@ -358,39 +365,74 @@ function GeneralTab() {
   const { content, updateField, update, resetToDefaults } = useContent();
   return (
     <div>
-      <h3 className="text-white/90 font-semibold text-lg mb-4">Couple Details</h3>
+      <h3 className="text-white/90 font-semibold text-lg mb-4">
+        Couple Details
+      </h3>
       <div className="grid sm:grid-cols-2 gap-4">
         <Field label="Your name">
-          <input className={inputClass} value={content.couple?.nameA || ""} onChange={(e) => updateField("couple", "nameA", e.target.value)} />
+          <input
+            className={inputClass}
+            value={content.couple?.nameA || ""}
+            onChange={(e) => updateField("couple", "nameA", e.target.value)}
+          />
         </Field>
         <Field label="Her / His name">
-          <input className={inputClass} value={content.couple?.nameB || ""} onChange={(e) => updateField("couple", "nameB", e.target.value)} />
+          <input
+            className={inputClass}
+            value={content.couple?.nameB || ""}
+            onChange={(e) => updateField("couple", "nameB", e.target.value)}
+          />
         </Field>
       </div>
       <Field label="Tagline">
-        <input className={inputClass} value={content.couple?.tagline || ""} onChange={(e) => updateField("couple", "tagline", e.target.value)} />
+        <input
+          className={inputClass}
+          value={content.couple?.tagline || ""}
+          onChange={(e) => updateField("couple", "tagline", e.target.value)}
+        />
       </Field>
 
-      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">Hero Section</h3>
+      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">
+        Hero Section
+      </h3>
       <Field label="Eyebrow text">
-        <input className={inputClass} value={content.hero?.eyebrow || ""} onChange={(e) => updateField("hero", "eyebrow", e.target.value)} />
+        <input
+          className={inputClass}
+          value={content.hero?.eyebrow || ""}
+          onChange={(e) => updateField("hero", "eyebrow", e.target.value)}
+        />
       </Field>
       <Field label="Hero heading">
-        <input className={inputClass} value={content.hero?.heading || ""} onChange={(e) => updateField("hero", "heading", e.target.value)} />
+        <input
+          className={inputClass}
+          value={content.hero?.heading || ""}
+          onChange={(e) => updateField("hero", "heading", e.target.value)}
+        />
       </Field>
       <Field label="Hero image">
-        <ImageInput value={content.hero?.heroImage || ""} onChange={(v) => updateField("hero", "heroImage", v)} />
+        <ImageInput
+          value={content.hero?.heroImage || ""}
+          onChange={(v) => updateField("hero", "heroImage", v)}
+        />
       </Field>
       <Field label="Typed messages (one per line)">
         <textarea
           className={inputClass}
           rows={4}
           value={(content.hero?.typedMessages || []).join("\n")}
-          onChange={(e) => updateField("hero", "typedMessages", e.target.value.split("\n").filter(Boolean))}
+          onChange={(e) =>
+            updateField(
+              "hero",
+              "typedMessages",
+              e.target.value.split("\n").filter(Boolean),
+            )
+          }
         />
       </Field>
 
-      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">Countdown & Footer</h3>
+      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">
+        Countdown & Footer
+      </h3>
       <Field label="Anniversary date & time">
         <input
           type="datetime-local"
@@ -400,10 +442,16 @@ function GeneralTab() {
         />
       </Field>
       <Field label="Footer message">
-        <input className={inputClass} value={content.footerMessage || ""} onChange={(e) => update("footerMessage", e.target.value)} />
+        <input
+          className={inputClass}
+          value={content.footerMessage || ""}
+          onChange={(e) => update("footerMessage", e.target.value)}
+        />
       </Field>
 
-      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">Security</h3>
+      <h3 className="text-white/90 font-semibold text-lg mb-4 mt-8">
+        Security
+      </h3>
       <Field label="Admin password">
         <input
           type="text"
@@ -415,7 +463,10 @@ function GeneralTab() {
       </Field>
 
       <button
-        onClick={() => window.confirm("Reset ALL content to starter defaults?") && resetToDefaults()}
+        onClick={() =>
+          window.confirm("Reset ALL content to starter defaults?") &&
+          resetToDefaults()
+        }
         className="flex items-center gap-2 text-xs text-red-400/70 hover:text-red-400 mt-6 transition-colors"
       >
         <FiRefreshCcw size={12} /> Reset everything to defaults
@@ -428,23 +479,44 @@ function TimelineTab() {
   return (
     <ListEditor
       listName="timeline"
-      itemShape={{ date: "New date", title: "New memory", description: "Tell the story…", image: "" }}
+      itemShape={{
+        date: "New date",
+        title: "New memory",
+        description: "Tell the story…",
+        image: "",
+      }}
       addLabel="Add timeline memory"
       renderFields={(item, patch) => (
         <>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Date label">
-              <input className={inputClass} value={item.date || ""} onChange={(e) => patch({ date: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.date || ""}
+                onChange={(e) => patch({ date: e.target.value })}
+              />
             </Field>
             <Field label="Title">
-              <input className={inputClass} value={item.title || ""} onChange={(e) => patch({ title: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.title || ""}
+                onChange={(e) => patch({ title: e.target.value })}
+              />
             </Field>
           </div>
           <Field label="Description">
-            <textarea className={inputClass} rows={3} value={item.description || ""} onChange={(e) => patch({ description: e.target.value })} />
+            <textarea
+              className={inputClass}
+              rows={3}
+              value={item.description || ""}
+              onChange={(e) => patch({ description: e.target.value })}
+            />
           </Field>
           <Field label="Photo">
-            <ImageInput value={item.image || ""} onChange={(v) => patch({ image: v })} />
+            <ImageInput
+              value={item.image || ""}
+              onChange={(v) => patch({ image: v })}
+            />
           </Field>
         </>
       )}
@@ -461,14 +533,25 @@ function GalleryTab() {
       renderFields={(item, patch) => (
         <>
           <Field label="Photo">
-            <ImageInput value={item.src || ""} onChange={(v) => patch({ src: v })} />
+            <ImageInput
+              value={item.src || ""}
+              onChange={(v) => patch({ src: v })}
+            />
           </Field>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Category">
-              <input className={inputClass} value={item.category || ""} onChange={(e) => patch({ category: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.category || ""}
+                onChange={(e) => patch({ category: e.target.value })}
+              />
             </Field>
             <Field label="Caption">
-              <input className={inputClass} value={item.caption || ""} onChange={(e) => patch({ caption: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.caption || ""}
+                onChange={(e) => patch({ caption: e.target.value })}
+              />
             </Field>
           </div>
         </>
@@ -486,13 +569,23 @@ function VideosTab() {
       renderFields={(item, patch) => (
         <>
           <Field label="Title">
-            <input className={inputClass} value={item.title || ""} onChange={(e) => patch({ title: e.target.value })} />
+            <input
+              className={inputClass}
+              value={item.title || ""}
+              onChange={(e) => patch({ title: e.target.value })}
+            />
           </Field>
           <Field label="Thumbnail image">
-            <ImageInput value={item.thumbnail || ""} onChange={(v) => patch({ thumbnail: v })} />
+            <ImageInput
+              value={item.thumbnail || ""}
+              onChange={(v) => patch({ thumbnail: v })}
+            />
           </Field>
           <Field label="Video file (upload to Cloudinary or paste URL)">
-            <VideoInput value={item.videoUrl || ""} onChange={(v) => patch({ videoUrl: v })} />
+            <VideoInput
+              value={item.videoUrl || ""}
+              onChange={(v) => patch({ videoUrl: v })}
+            />
           </Field>
         </>
       )}
@@ -504,20 +597,37 @@ function LettersTab() {
   return (
     <ListEditor
       listName="letters"
-      itemShape={{ title: "New letter", date: "Today", body: "Write your heart out…" }}
+      itemShape={{
+        title: "New letter",
+        date: "Today",
+        body: "Write your heart out…",
+      }}
       addLabel="Add love letter"
       renderFields={(item, patch) => (
         <>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Title">
-              <input className={inputClass} value={item.title || ""} onChange={(e) => patch({ title: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.title || ""}
+                onChange={(e) => patch({ title: e.target.value })}
+              />
             </Field>
             <Field label="Date / occasion">
-              <input className={inputClass} value={item.date || ""} onChange={(e) => patch({ date: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.date || ""}
+                onChange={(e) => patch({ date: e.target.value })}
+              />
             </Field>
           </div>
           <Field label="Letter body">
-            <textarea className={inputClass} rows={5} value={item.body || ""} onChange={(e) => patch({ body: e.target.value })} />
+            <textarea
+              className={inputClass}
+              rows={5}
+              value={item.body || ""}
+              onChange={(e) => patch({ body: e.target.value })}
+            />
           </Field>
         </>
       )}
@@ -534,10 +644,19 @@ function QuotesTab() {
       renderFields={(item, patch) => (
         <>
           <Field label="Quote text">
-            <textarea className={inputClass} rows={2} value={item.text || ""} onChange={(e) => patch({ text: e.target.value })} />
+            <textarea
+              className={inputClass}
+              rows={2}
+              value={item.text || ""}
+              onChange={(e) => patch({ text: e.target.value })}
+            />
           </Field>
           <Field label="Author">
-            <input className={inputClass} value={item.author || ""} onChange={(e) => patch({ author: e.target.value })} />
+            <input
+              className={inputClass}
+              value={item.author || ""}
+              onChange={(e) => patch({ author: e.target.value })}
+            />
           </Field>
         </>
       )}
@@ -555,17 +674,31 @@ function PlaylistTab() {
         <>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Song title">
-              <input className={inputClass} value={item.title || ""} onChange={(e) => patch({ title: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.title || ""}
+                onChange={(e) => patch({ title: e.target.value })}
+              />
             </Field>
             <Field label="Artist">
-              <input className={inputClass} value={item.artist || ""} onChange={(e) => patch({ artist: e.target.value })} />
+              <input
+                className={inputClass}
+                value={item.artist || ""}
+                onChange={(e) => patch({ artist: e.target.value })}
+              />
             </Field>
           </div>
           <Field label="Audio file (upload to Cloudinary or paste URL)">
-            <AudioInput value={item.src || ""} onChange={(v) => patch({ src: v })} />
+            <AudioInput
+              value={item.src || ""}
+              onChange={(v) => patch({ src: v })}
+            />
           </Field>
           <Field label="Cover art">
-            <ImageInput value={item.cover || ""} onChange={(v) => patch({ cover: v })} />
+            <ImageInput
+              value={item.cover || ""}
+              onChange={(v) => patch({ cover: v })}
+            />
           </Field>
         </>
       )}
@@ -627,7 +760,10 @@ export default function Admin() {
             <h1 className="font-bold text-lg text-white">Admin Dashboard</h1>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <Link to="/" className="text-sm text-white/50 hover:text-white/80 transition-colors">
+            <Link
+              to="/"
+              className="text-sm text-white/50 hover:text-white/80 transition-colors"
+            >
               ← View site
             </Link>
             <button
@@ -636,9 +772,16 @@ export default function Admin() {
               className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {saving ? (
-                <><span className="animate-spin"><FiLoader size={14} /></span> Saving…</>
+                <>
+                  <span className="animate-spin">
+                    <FiLoader size={14} />
+                  </span>{" "}
+                  Saving…
+                </>
               ) : (
-                <><FiSave size={14} /> Save to MongoDB</>
+                <>
+                  <FiSave size={14} /> Save to MongoDB
+                </>
               )}
             </button>
             <button
@@ -665,7 +808,11 @@ export default function Admin() {
                   : "bg-red-500/15 border border-red-500/30 text-red-300"
               }`}
             >
-              {saveMsg.type === "success" ? <FiCheck size={14} /> : <FiAlertCircle size={14} />}
+              {saveMsg.type === "success" ? (
+                <FiCheck size={14} />
+              ) : (
+                <FiAlertCircle size={14} />
+              )}
               {saveMsg.text}
             </motion.div>
           )}
