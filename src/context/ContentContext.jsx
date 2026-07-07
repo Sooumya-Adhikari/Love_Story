@@ -9,17 +9,30 @@ import { defaultContent } from "../data/defaultContent";
 
 const ContentContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api";
+// সরাসরি আপনার আসল Render ব্যাকঅ্যান্ড এপিআই লিংক বসিয়ে দেওয়া হলো
+const API_BASE = "https://love-story-9e55.onrender.com/api";
 
-// Helper: get JWT from sessionStorage
+// Helper: সব জায়গা থেকে JWT টোকেন খোঁজার ট্রাই করবে
 function getToken() {
-  return sessionStorage.getItem("admin_token") || null;
+  return (
+    sessionStorage.getItem("admin_token") || 
+    localStorage.getItem("adminToken") || 
+    localStorage.getItem("token") || 
+    null
+  );
 }
 
-// Helper: set JWT
+// Helper: সব জায়গায় একসাথে JWT সেভ করবে যেন কোনো এরর না আসে
 function setToken(token) {
-  if (token) sessionStorage.setItem("admin_token", token);
-  else sessionStorage.removeItem("admin_token");
+  if (token) {
+    sessionStorage.setItem("admin_token", token);
+    localStorage.setItem("adminToken", token);
+    localStorage.setItem("token", token);
+  } else {
+    sessionStorage.removeItem("admin_token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("token");
+  }
 }
 
 export function ContentProvider({ children }) {
