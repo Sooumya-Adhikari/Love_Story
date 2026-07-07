@@ -228,9 +228,7 @@ function AudioInput({ value, onChange }) {
 }
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
-
 function AdminLogin({ onSuccess }) {
-  const { login } = useContent();
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -240,14 +238,31 @@ function AdminLogin({ onSuccess }) {
     setError("");
     setLoading(true);
     try {
-      await login(pass);
-      onSuccess();
+      // সরাসরি Render-এর সঠিক এপিআই লিংকে হিট করবে
+      const res = await fetch("https://love-story-9e55.onrender.com/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: pass }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // টোকেন সেভ করে সাকসেস ফাংশন রান করবে
+        localStorage.setItem("adminToken", data.token);
+        onSuccess();
+      } else {
+        setError(data.message || "Incorrect password.");
+      }
     } catch (err) {
-      setError(err.message || "Incorrect password.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900 px-6">
