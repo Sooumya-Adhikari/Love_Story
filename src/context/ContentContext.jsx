@@ -9,10 +9,8 @@ import { defaultContent } from "../data/defaultContent";
 
 const ContentContext = createContext(null);
 
-// সরাসরি আপনার আসল Render ব্যাকঅ্যান্ড এপিআই লিংক বসিয়ে দেওয়া হলো
 const API_BASE = "https://love-story-9e55.onrender.com/api";
 
-// Helper: সব জায়গা থেকে JWT টোকেন খোঁজার ট্রাই করবে
 function getToken() {
   return (
     sessionStorage.getItem("admin_token") || 
@@ -22,7 +20,6 @@ function getToken() {
   );
 }
 
-// Helper: সব জায়গায় একসাথে JWT সেভ করবে যেন কোনো এরর না আসে
 function setToken(token) {
   if (token) {
     sessionStorage.setItem("admin_token", token);
@@ -36,37 +33,47 @@ function setToken(token) {
 }
 
 export function ContentProvider({ children }) {
-  const [content, setContent] = useState({
-    ...defaultContent,
-    theme: { ...defaultContent.theme, mode: "night" },
-  });
+  // ১. শুরুতে কন্টেন্ট null থাকবে যাতে ভুল বা ডিফল্ট ডাটা ফ্লাশ না করে
+  const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ২. মেইন পেজের পাসওয়ার্ড অথরাইজেশন স্টেট (একবার পাসওয়ার্ড দিলে ব্রাউজারে সেভ থাকবে)
+  const [isMainAuthed, setIsMainAuthed] = useState(
+    () => localStorage.getItem("main_page_access") === "true"
+  );
+
   // Load story from MongoDB on mount
   useEffect(() => {
+    let timer;
     async function fetchStory() {
       try {
         const resp = await fetch(`${API_BASE}/story`);
         if (!resp.ok) throw new Error(`Server error: ${resp.status}`);
         const data = await resp.json();
         if (data && data.couple) {
-          setContent((prev) => ({
-            ...prev,
+          setContent({
+            ...defaultContent,
             ...data,
-            theme: { ...prev.theme, ...data.theme, mode: "night" },
-          }));
+            theme: { ...defaultContent.theme, ...data.theme, mode: "night" },
+          });
+          setError(null);
+          setLoading(false); // ডাটা সফলভাবে আসলেই কেবল লোডিং শেষ হবে
+        } else {
+          setContent(defaultContent);
+          setLoading(false);
         }
       } catch (err) {
-        console.warn("Could not load story from server, using defaults:", err.message);
+        console.warn("Server cold start or error, retrying in 3 seconds...", err.message);
         setError(err.message);
+        // সার্ভার ফ্রি টায়ারের কারণে ঘুমে থাকলে প্রতি ৩ সেকেন্ড পর পর ব্যাকগ্রাউন্ডে অটো ট্রাই করবে
+        timer = setTimeout(fetchStory, 3000);
       } finally {
-        setLoading(false);
-        // Always ensure dark mode
         document.documentElement.classList.add("night");
       }
     }
     fetchStory();
+    return () => clearTimeout(timer);
   }, []);
 
   // Save story to MongoDB (requires JWT)
@@ -122,52 +129,66 @@ export function ContentProvider({ children }) {
 
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || "Upload failed");
-    return data.url; // Returns Cloudinary secure URL
+    return data.url;
+  }, []);
+
+  // ৩. মেইন পেজ লক খোলার ফাংশন
+  const verifyMainPassword = useCallback((password) => {
+    if (password === "ourlovestory") { // এখানে তোমার মেইন পেজের পাসওয়ার্ড সেট করা
+      localStorage.setItem("main_page_access", "true");
+      setIsMainAuthed(true);
+      return true;
+    }
+    return false;
   }, []);
 
   // Content updaters
   const update = useCallback((path, value) => {
-    setContent((prev) => ({ ...prev, [path]: value }));
+    setContent((prev) => (prev ? { ...prev, [path]: value } : prev));
   }, []);
 
   const updateField = useCallback((section, field, value) => {
-    setContent((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value },
-    }));
+    setContent((prev) =>
+      prev
+        ? {
+            ...prev,
+            [section]: { ...prev[section], [field]: value },
+          }
+        : prev
+    );
   }, []);
 
   const addItem = useCallback((listName, item) => {
-    setContent((prev) => ({ ...prev, [listName]: [...(prev[listName] || []), item] }));
+    setContent((prev) => (prev ? { ...prev, [listName]: [...(prev[listName] || []), item] } : prev));
   }, []);
 
   const updateItem = useCallback((listName, id, patch) => {
-    setContent((prev) => ({
-      ...prev,
-      [listName]: (prev[listName] || []).map((it) =>
-        it.id === id ? { ...it, ...patch } : it
-      ),
-    }));
+    setContent((prev) =>
+      prev
+        ? {
+            ...prev,
+            [listName]: (prev[listName] || []).map((it) =>
+              it.id === id ? { ...it, ...patch } : it
+            ),
+          }
+        : prev
+    );
   }, []);
 
   const deleteItem = useCallback((listName, id) => {
-    setContent((prev) => ({
-      ...prev,
-      [listName]: (prev[listName] || []).filter((it) => it.id !== id),
-    }));
+    setContent((prev) =>
+      prev
+        ? {
+            ...prev,
+            [listName]: (prev[listName] || []).filter((it) => it.id !== id),
+          }
+        : prev
+    );
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    // Always night mode
-  }, []);
-
-  const resetToDefaults = useCallback(() => {
-    setContent(defaultContent);
-  }, []);
-
-  const replaceContent = useCallback((next) => {
-    setContent(next);
-  }, []);
+  const toggleTheme = useCallback(() => {}, []);
+  const resetToDefaults = useCallback(() => setContent(defaultContent), []);
+  const replaceContent = useCallback((next) => setContent(next), []);
 
   return (
     <ContentContext.Provider
@@ -175,6 +196,8 @@ export function ContentProvider({ children }) {
         content,
         loading,
         error,
+        isMainAuthed,
+        verifyMainPassword,
         update,
         updateField,
         addItem,
